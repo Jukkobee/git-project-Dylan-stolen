@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 
 public class Git {
 
@@ -31,11 +32,22 @@ public class Git {
 
     }
 
-    public void commitChanges(String summary, String author) throws NoSuchAlgorithmException, IOException
+    public String commit(String summary, String author) throws NoSuchAlgorithmException, IOException
     //creates a commit given the author and a summary. and all the changes since the most recent commit
-    {
-        String commitText = "";
-
+    //how to find the date is found here: https://www.geeksforgeeks.org/java-current-date-time/
+    {   
+        String tree = sha1FromText(getCurrentRootFile());
+        BufferedReader bReader = new BufferedReader(new FileReader("./git/HEAD"));
+        String head = bReader.readLine();
+        bReader.close();
+        Date d = new Date();
+        
+        String commitText = "tree: " + tree; 
+        commitText += "\n" + "parent: " + head;
+        commitText += "\n" + "parent: " + head;
+        commitText += "\n" + "author: " + author;
+        commitText += "\n" + "date: " + d;
+        commitText += "\n" + "message: " + summary;
 
         String commitHash = sha1FromText(commitText); // this creates the hash
         switchHead(commitHash); // this updates the HEAD
@@ -45,6 +57,13 @@ public class Git {
         BufferedWriter bWriter = new BufferedWriter(new FileWriter(commitPathName));
         bWriter.write(commitText);
         bWriter.close();
+
+        return commitHash;
+    }
+
+    public static String getCurrentRootFile()
+    {
+        
     }
 
     public static String sha1(Path file) throws NoSuchAlgorithmException, IOException {
@@ -56,7 +75,6 @@ public class Git {
         while (hash.length() < 40) {
             hash = "0" + hash;
         }
-
         return hash;
     }
 
@@ -65,13 +83,12 @@ public class Git {
     {
         byte[] bytes = textToSHA1.getBytes();
         MessageDigest  md = MessageDigest.getInstance("SHA-1");
-        byte[] byteArr = md.digest(bytes); 
+        byte[] byteArr = md.digest(bytes);
         BigInteger n = new BigInteger(1, byteArr);
         String hash = n.toString(16);
         while (hash.length() < 40) {
             hash = "0" + hash;
         }
-
         return hash;
     }
 
