@@ -36,14 +36,20 @@ public class Git {
     //creates a commit given the author and a summary. and all the changes since the most recent commit
     //how to find the date is found here: https://www.geeksforgeeks.org/java-current-date-time/
     {   
-        String tree = sha1FromText(getCurrentRootFile());
+        if(getFileText("./git/index").length() == 0)
+        {
+            return "Nothing to commit.";
+        }
         BufferedReader bReader = new BufferedReader(new FileReader("./git/HEAD"));
         String head = bReader.readLine();
         bReader.close();
         Date d = new Date();
+
+        String treeText = getTreeText(head);
+        String treeHash = sha1FromText(treeText);
+        switchIndex(treeText, treeHash);
         
-        String commitText = "tree: " + tree; 
-        commitText += "\n" + "parent: " + head;
+        String commitText = "tree: " + treeHash; 
         commitText += "\n" + "parent: " + head;
         commitText += "\n" + "author: " + author;
         commitText += "\n" + "date: " + d;
@@ -61,9 +67,37 @@ public class Git {
         return commitHash;
     }
 
-    public static String getCurrentRootFile()
+    public static String getTreeText(String head) throws IOException
     {
-        
+        String indexText = getFileText("./git/index"); //takes the new changes since the old version
+        String previousCommit = getFileText("./git/objects/" + head); //these three lines get the old version of the index
+        String previousIndexHash = previousCommit.substring(previousCommit.indexOf("tree: ") + 6);
+        String previousIndexText = getFileText("./git/objects/" + previousIndexHash);
+        indexText = previousIndexText + "\n" + indexText; //combines the old version with the new changes
+        return indexText;
+    }
+
+    public static void switchIndex(String treeText, String treeHash) throws IOException
+    {
+        File index = new File("./git/index");
+        index.delete();
+        File indexInObjects = new File("./git/objects/" + treeHash);
+        indexInObjects.createNewFile();
+        BufferedWriter bWriter = new BufferedWriter(new FileWriter(indexInObjects);
+        bWriter.write(treeText);
+        bWriter.close();
+    }
+
+    public static String getFileText(String pathName) throws IOException
+    {
+        BufferedReader bReader = new BufferedReader(new FileReader(pathName));
+        String fileText = "";
+        while(bReader.ready())
+        {
+            fileText += bReader.readLine();
+        }
+        bReader.close();
+        return fileText;
     }
 
     public static String sha1(Path file) throws NoSuchAlgorithmException, IOException {
