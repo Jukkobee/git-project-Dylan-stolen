@@ -32,7 +32,7 @@ public class Git {
 
     }
 
-    public String commit(String summary, String author) throws NoSuchAlgorithmException, IOException
+    public static String commit(String author, String summary) throws NoSuchAlgorithmException, IOException
     //creates a commit given the author and a summary. and all the changes since the most recent commit
     //how to find the date is found here: https://www.geeksforgeeks.org/java-current-date-time/
     {   
@@ -41,7 +41,11 @@ public class Git {
             return "Nothing to commit.";
         }
         BufferedReader bReader = new BufferedReader(new FileReader("./git/HEAD"));
-        String head = bReader.readLine();
+        String head = "";
+        while(bReader.ready())
+        {
+            head += (char)(bReader.read());
+        }
         bReader.close();
         Date d = new Date();
 
@@ -49,7 +53,7 @@ public class Git {
         String treeHash = sha1FromText(treeText);
         switchIndex(treeText, treeHash);
         
-        String commitText = "tree: " + treeHash; 
+        String commitText = "tree: " + treeHash;
         commitText += "\n" + "parent: " + head;
         commitText += "\n" + "author: " + author;
         commitText += "\n" + "date: " + d;
@@ -70,8 +74,14 @@ public class Git {
     public static String getTreeText(String head) throws IOException
     {
         String indexText = getFileText("./git/index"); //takes the new changes since the old version
+        indexText = indexText.substring(0, indexText.length() - 1);
+        if(head.length() == 0)
+        {
+            return indexText;
+        }
         String previousCommit = getFileText("./git/objects/" + head); //these three lines get the old version of the index
-        String previousIndexHash = previousCommit.substring(previousCommit.indexOf("tree: ") + 6);
+        int numWhereIndexHashBegins = previousCommit.indexOf("tree: ") + 6;
+        String previousIndexHash = previousCommit.substring(numWhereIndexHashBegins, numWhereIndexHashBegins + 40);
         String previousIndexText = getFileText("./git/objects/" + previousIndexHash);
         indexText = previousIndexText + "\n" + indexText; //combines the old version with the new changes
         return indexText;
@@ -81,9 +91,10 @@ public class Git {
     {
         File index = new File("./git/index");
         index.delete();
+        index.createNewFile();
         File indexInObjects = new File("./git/objects/" + treeHash);
         indexInObjects.createNewFile();
-        BufferedWriter bWriter = new BufferedWriter(new FileWriter(indexInObjects);
+        BufferedWriter bWriter = new BufferedWriter(new FileWriter(indexInObjects));
         bWriter.write(treeText);
         bWriter.close();
     }
@@ -94,7 +105,7 @@ public class Git {
         String fileText = "";
         while(bReader.ready())
         {
-            fileText += bReader.readLine();
+            fileText += (char)(bReader.read());
         }
         bReader.close();
         return fileText;
@@ -190,8 +201,8 @@ public class Git {
         }
     }
 
-    //deletes directories recursively (gets rid of the subfiles too)
     public static void deleteDir(File dir) {
+    //deletes directories recursively (gets rid of the subfiles too)
         if (!dir.isDirectory()) {
             if (dir.isFile()) 
                 dir.delete();

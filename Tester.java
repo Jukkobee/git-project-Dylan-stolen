@@ -38,6 +38,7 @@ public class Tester {
         }
 
     }
+    
     public static void createNewBlobTester(Path path) throws NoSuchAlgorithmException, IOException {
         Git.createNewBlob(path);
 
@@ -82,6 +83,7 @@ public class Tester {
         System.out.println("everything was created (blob + index entry)");
 
     }
+    
     public static void SHATester() throws IOException, NoSuchAlgorithmException {
 
         //sha1 tester
@@ -104,18 +106,49 @@ public class Tester {
         System.out.println("expected hash: " + "2aae6c35c94fcfb415dbe95f408b9ce91ee846ed");
     }
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
+
+        Git.resetGit();
         Git.initGitRepo();
-        //initGitRepoTester();
+        File testFolder = new File ("testTreeFolder");
+        File sample1 = new File ("./testTreeFolder/sample1.txt");
+        if(testFolder.exists())
+            Git.deleteDir(testFolder);
+        testFolder.mkdir();
+        sample1.createNewFile();
+        BufferedWriter bWriter = new BufferedWriter(new FileWriter(sample1));
+        bWriter.write("just some sample text");
+        bWriter.close();
+        Git.createNewBlob("testTreeFolder");
+
+        Git.commit("Jacob Massey", "testing my first commit");
+
+        File test = new File("testFile.txt");
+        if(test.exists())
+            test.delete(); //RESETS it if needed
+        FileWriter fWriter = new FileWriter(test,true);
+        BufferedWriter bufferWritter = new BufferedWriter(fWriter);
+        bufferWritter.write("this is a test");
+        bufferWritter.close();
+        Git.createNewBlob("testFile.txt");
+
+        Git.commit("Jacob Massey", "testing my SECOND commit!");
+
+
+
+
+        // File test2 = new File("testFile2.txt");
+        // if(test2.exists()) 
+        //     test2.delete(); //RESETS it if needed
+        // FileWriter fileWritter2 = new FileWriter(test2,true);
+        // BufferedWriter bufferWritter2 = new BufferedWriter(fileWritter2);
+        // bufferWritter2.write("this is a second test for secret reasons", 0, 40);
+        // bufferWritter2.close();
 
         // testing blob
         // Paths.get("./git/testFile.txt")
         //Git.createNewBlob("testFile.txt");
         //createNewBlobTester(testFile);
-        //Git.resetGit();
-        File testFolder = new File ("testTreeFolder");
-        File sample1 = new File ("./testTreeFolder/sample1.txt");
-        testFolder.mkdir();
-        sample1.createNewFile();
-        Git.createNewBlob("testTreeFolder");
+
+        // Git.createNewBlob();
     }
 }
